@@ -10,7 +10,8 @@ import {
   X,
   Bell,
   Search,
-  ChevronRight
+  ChevronRight,
+  ClipboardList
 } from 'lucide-react';
 import { ViewType } from '../types';
 
@@ -25,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
 
   const menuItems = [
     { id: 'DASHBOARD', label: '控制台', icon: LayoutDashboard },
-    { id: 'REQUISITIONS', label: '采购申请', icon: ShoppingCart },
+    { id: 'PURCHASE_ORDERS', label: '采购订单管理', icon: ClipboardList },
     { id: 'SUPPLIERS', label: '供应商管理', icon: Users },
     { id: 'INVENTORY', label: '库存查询', icon: Package },
     { id: 'AI_INSIGHTS', label: 'AI 决策助手', icon: Sparkles },
@@ -34,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200">
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <ShoppingCart className="text-white w-5 h-5" />

@@ -1,14 +1,108 @@
 
-import React from 'react';
-import { X, Calendar, Upload, PackageSearch, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Calendar, Upload, PackageSearch, Trash2, Plus } from 'lucide-react';
+import SelectSKUModal from './SelectSKUModal';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (newOrder: any) => void;
 }
 
-const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose }) => {
+interface ProcurementItem {
+  id: string;
+  productName: string;
+  skuCode: string;
+  spec: string;
+  image: string;
+  quantity: number | '';
+  unitPrice: number | '';
+  totalPrice: number;
+  remark: string;
+}
+
+const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
+  const [isSKUModalOpen, setIsSKUModalOpen] = useState(false);
+  const [items, setItems] = useState<ProcurementItem[]>([
+    { id: 'initial-row', productName: '', skuCode: '', spec: '', image: '', quantity: '', unitPrice: '', totalPrice: 0, remark: '' }
+  ]);
+
   if (!isOpen) return null;
+
+  const handleAddItem = () => {
+    const newItem: ProcurementItem = {
+      id: `row-${Date.now()}`,
+      productName: '',
+      skuCode: '',
+      spec: '',
+      image: '',
+      quantity: '',
+      unitPrice: '',
+      totalPrice: 0,
+      remark: ''
+    };
+    setItems([...items, newItem]);
+  };
+
+  const handleRemoveItem = (id: string) => {
+    if (items.length === 1) {
+      setItems([{ id: 'initial-row', productName: '', skuCode: '', spec: '', image: '', quantity: '', unitPrice: '', totalPrice: 0, remark: '' }]);
+    } else {
+      setItems(items.filter(item => item.id !== id));
+    }
+  };
+
+  const handleUpdateItem = (id: string, field: keyof ProcurementItem, value: any) => {
+    setItems(items.map(item => {
+      if (item.id === id) {
+        const updated = { ...item, [field]: value };
+        // Recalculate total
+        if (field === 'quantity' || field === 'unitPrice') {
+          const q = field === 'quantity' ? value : item.quantity;
+          const p = field === 'unitPrice' ? value : item.unitPrice;
+          updated.totalPrice = (Number(q) || 0) * (Number(p) || 0);
+        }
+        return updated;
+      }
+      return item;
+    }));
+  };
+
+  const handleSKUConfirm = (selectedSKUs: any[]) => {
+    const newItems = selectedSKUs.map(sku => ({
+      id: `sku-${sku.id}-${Date.now()}`,
+      productName: sku.name,
+      skuCode: sku.skuCode,
+      spec: sku.spec,
+      image: sku.image,
+      quantity: '',
+      unitPrice: '',
+      totalPrice: 0,
+      remark: ''
+    }));
+
+    // Replace the initial empty row if it's there and empty
+    const filteredItems = items.filter(item => item.productName !== '' || item.skuCode !== '');
+    setItems([...filteredItems, ...newItems]);
+    setIsSKUModalOpen(false);
+  };
+
+  const totalQuantity = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  const grandTotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newOrder = {
+      id: `PR-${new Date().getTime().toString().slice(-8)}`,
+      title: items[0]?.productName || '手动新增采购订单',
+      user: '当前管理员',
+      total: `¥${grandTotal.toFixed(2)}`,
+      status: '待审批',
+      statusCol: 'text-amber-500',
+      statusBg: 'bg-amber-50',
+    };
+    onSubmit(newOrder);
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4 md:p-8">
@@ -97,43 +191,110 @@ const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <option value="">增值税专用发票</option>
               </select>
             </FormItem>
-            <FormItem label="包装设计图">
-              <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                <Upload className="w-4 h-4" /> 选择文件
-              </button>
-            </FormItem>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormItem label="包装设计图">
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 w-full justify-center">
+                  <Upload className="w-4 h-4" /> 选择文件
+                </button>
+              </FormItem>
+              <FormItem label="上传合同附件">
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 w-full justify-center">
+                  <Upload className="w-4 h-4" /> 上传合同
+                </button>
+              </FormItem>
+            </div>
           </div>
 
           {/* Purchase Info Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-l-4 border-indigo-600 pl-3">
               <h3 className="font-bold text-slate-800">采购信息</h3>
-              <button className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold">选择SKU</button>
+              <div className="flex gap-4">
+                <button 
+                  onClick={handleAddItem}
+                  className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
+                >
+                  <Plus className="w-4 h-4" /> 新增行
+                </button>
+                <button 
+                  onClick={() => setIsSKUModalOpen(true)}
+                  className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold"
+                >
+                  选择SKU
+                </button>
+              </div>
             </div>
-            <div className="border border-slate-100 rounded-lg overflow-hidden">
-              <table className="w-full text-left text-sm">
+            <div className="border border-slate-100 rounded-lg overflow-x-auto">
+              <table className="w-full text-left text-sm min-w-[1000px]">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-4 py-3 font-medium text-slate-500">产品名称</th>
+                    <th className="px-4 py-3 font-medium text-slate-500 w-48">产品名称</th>
                     <th className="px-4 py-3 font-medium text-slate-500">SKU编码</th>
                     <th className="px-4 py-3 font-medium text-slate-500">规格型号</th>
-                    <th className="px-4 py-3 font-medium text-slate-500">图片</th>
-                    <th className="px-4 py-3 font-medium text-slate-500">采购数量</th>
-                    <th className="px-4 py-3 font-medium text-slate-500">采购单价(元)</th>
-                    <th className="px-4 py-3 font-medium text-slate-500">采购金额(元)</th>
+                    <th className="px-4 py-3 font-medium text-slate-500 w-16">图片</th>
+                    <th className="px-4 py-3 font-medium text-slate-500 w-24">采购数量</th>
+                    <th className="px-4 py-3 font-medium text-slate-500 w-32">采购单价(元)</th>
+                    <th className="px-4 py-3 font-medium text-slate-500 w-32">采购金额(元)</th>
                     <th className="px-4 py-3 font-medium text-slate-500">备注</th>
-                    <th className="px-4 py-3 font-medium text-slate-500">操作</th>
+                    <th className="px-4 py-3 font-medium text-slate-500 w-16">操作</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td colSpan={9} className="py-20 text-center text-slate-300">
-                      <div className="flex flex-col items-center">
-                        <PackageSearch className="w-12 h-12 mb-2 opacity-20" />
-                        <p>暂无数据</p>
-                      </div>
-                    </td>
-                  </tr>
+                <tbody className="divide-y divide-slate-50">
+                  {items.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/50">
+                      <td className="px-4 py-2">
+                        <input 
+                          type="text" 
+                          className="w-full bg-transparent border-b border-transparent focus:border-indigo-300 focus:outline-none py-1"
+                          value={item.productName}
+                          onChange={(e) => handleUpdateItem(item.id, 'productName', e.target.value)}
+                          placeholder="请输入名称"
+                        />
+                      </td>
+                      <td className="px-4 py-2 text-slate-500">{item.skuCode || '-'}</td>
+                      <td className="px-4 py-2 text-slate-500">{item.spec || '-'}</td>
+                      <td className="px-4 py-2">
+                        {item.image ? <img src={item.image} className="w-8 h-8 rounded border" /> : '-'}
+                      </td>
+                      <td className="px-4 py-2">
+                        <input 
+                          type="number" 
+                          className="w-full bg-transparent border-b border-transparent focus:border-indigo-300 focus:outline-none py-1"
+                          value={item.quantity}
+                          onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value)}
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input 
+                          type="number" 
+                          className="w-full bg-transparent border-b border-transparent focus:border-indigo-300 focus:outline-none py-1"
+                          value={item.unitPrice}
+                          onChange={(e) => handleUpdateItem(item.id, 'unitPrice', e.target.value)}
+                        />
+                      </td>
+                      <td className="px-4 py-2 font-medium text-slate-900">
+                        {item.totalPrice.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-2">
+                        <input 
+                          type="text" 
+                          className="w-full bg-transparent border-b border-transparent focus:border-indigo-300 focus:outline-none py-1"
+                          value={item.remark}
+                          onChange={(e) => handleUpdateItem(item.id, 'remark', e.target.value)}
+                          placeholder="填写备注"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <button 
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -142,13 +303,13 @@ const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose }) => {
           {/* Bottom Summary Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FormItem label="总数量">
-              <input type="number" className="form-input-custom" readOnly />
+              <input type="number" className="form-input-custom bg-slate-50" value={totalQuantity} readOnly />
             </FormItem>
             <FormItem label="采购总金额">
-              <input type="text" className="form-input-custom" readOnly />
+              <input type="text" className="form-input-custom bg-slate-50" value={`¥${grandTotal.toFixed(2)}`} readOnly />
             </FormItem>
             <FormItem label="预付金额">
-              <input type="text" className="form-input-custom" readOnly />
+              <input type="text" className="form-input-custom" placeholder="¥0.00" />
             </FormItem>
             <div className="md:col-span-1">
               <FormItem label="付款时间" required>
@@ -161,7 +322,7 @@ const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
 
           <FormItem label="交货时间/合同条款" required>
-            <textarea className="form-input-custom h-32 py-3 resize-none" />
+            <textarea className="form-input-custom h-32 py-3 resize-none" placeholder="请输入具体条款信息" />
           </FormItem>
         </div>
 
@@ -170,11 +331,17 @@ const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <button className="px-6 py-2.5 bg-[#A5CC32] hover:bg-[#92b52b] text-white font-bold rounded shadow-sm transition-colors">
             生成采购合同
           </button>
-          <button onClick={onClose} className="px-8 py-2.5 bg-[#82AD00] hover:bg-[#6f9400] text-white font-bold rounded shadow-sm transition-colors">
-            保存
+          <button onClick={handleSubmit} className="px-8 py-2.5 bg-[#82AD00] hover:bg-[#6f9400] text-white font-bold rounded shadow-sm transition-colors">
+            提交
           </button>
         </div>
       </div>
+
+      <SelectSKUModal 
+        isOpen={isSKUModalOpen} 
+        onClose={() => setIsSKUModalOpen(false)} 
+        onConfirm={handleSKUConfirm}
+      />
 
       <style>{`
         .form-input-custom {
@@ -197,7 +364,6 @@ const CreatePurchaseOrderModal: React.FC<Props> = ({ isOpen, onClose }) => {
   );
 };
 
-// Internal component for form layout, with children prop marked optional to satisfy TypeScript's JSX element check.
 const FormItem = ({ label, required, children }: { label: string; required?: boolean; children?: React.ReactNode }) => (
   <div className="space-y-1.5">
     <label className="text-sm font-medium text-slate-600 flex gap-1">

@@ -45,4 +45,4 @@ export interface Requisition {
   total: number;
 }
 
-export type ViewType = 'DASHBOARD' | 'REQUISITIONS' | 'SUPPLIERS' | 'INVENTORY' | 'AI_INSIGHTS';
+export type ViewType = 'DASHBOARD' | 'PURCHASE_ORDERS' | 'SUPPLIERS' | 'INVENTORY' | 'AI_INSIGHTS';
