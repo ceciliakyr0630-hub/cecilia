@@ -5,6 +5,8 @@ import Dashboard from './components/Dashboard';
 import Suppliers from './components/Suppliers';
 import AIInsights from './components/AIInsights';
 import CreatePurchaseOrderModal from './components/CreatePurchaseOrderModal';
+import InspectionDetailModal from './components/InspectionDetailModal';
+import ReceivingManagementView from './components/ReceivingManagementView';
 import { ViewType } from './types';
 import { 
   ChevronLeft, 
@@ -37,9 +39,10 @@ const InventoryView = () => (
   </div>
 );
 
-// Inspection Management View matching the user's latest screenshot
+// Inspection Management View
 const InspectionManagementView = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [activeInspection, setActiveInspection] = useState<any>(null);
   
   const mockInspections = useMemo(() => [
     { id: 'INS464288540000258', poId: 'PO462273682341889', createTime: '2026-01-06 17:13:49', supplier: '测试供应商', address: 'rweerwew', payment: '', delivery: '快递到付', status: '进行中' },
@@ -55,6 +58,14 @@ const InspectionManagementView = () => {
 
   const toggleOne = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleOpenDetail = (item: any) => {
+    setActiveInspection(item);
+  };
+
+  const handleSaveInspection = (id: string, batches: any[]) => {
+    console.log(`Saving inspection ${id}:`, batches);
   };
 
   return (
@@ -119,7 +130,14 @@ const InspectionManagementView = () => {
                     onChange={() => toggleOne(item.id)}
                   />
                 </td>
-                <td className="px-4 py-4 text-[#1890ff] cursor-pointer hover:underline">{item.id}</td>
+                <td className="px-4 py-4">
+                  <button 
+                    onClick={() => handleOpenDetail(item)}
+                    className="text-[#1890ff] font-bold hover:underline text-left"
+                  >
+                    {item.id}
+                  </button>
+                </td>
                 <td className="px-4 py-4 text-slate-600">{item.poId}</td>
                 <td className="px-4 py-4 text-slate-600 font-mono">{item.createTime}</td>
                 <td className="px-4 py-4 text-slate-600">{item.supplier}</td>
@@ -136,6 +154,13 @@ const InspectionManagementView = () => {
           </tbody>
         </table>
       </div>
+
+      <InspectionDetailModal 
+        isOpen={!!activeInspection}
+        onClose={() => setActiveInspection(null)}
+        inspection={activeInspection}
+        onSave={handleSaveInspection}
+      />
     </div>
   );
 };
@@ -355,7 +380,7 @@ const PurchaseOrdersView = ({ onOpenCreate, allOrders }: { onOpenCreate: () => v
             ))}
             <button 
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(p => p + 1)}
+              onClick={() => setCurrentPage(p => p - 1)}
               className="p-1 hover:bg-slate-100 rounded disabled:opacity-30"
             >
               <ChevronRight className="w-4 h-4" />
@@ -443,6 +468,8 @@ const App: React.FC = () => {
         return <PurchaseOrdersView onOpenCreate={() => setIsModalOpen(true)} allOrders={purchaseOrders} />;
       case 'INSPECTION_MANAGEMENT':
         return <InspectionManagementView />;
+      case 'RECEIVING_MANAGEMENT':
+        return <ReceivingManagementView />;
       case 'SUPPLIERS':
         return <Suppliers />;
       case 'INVENTORY':

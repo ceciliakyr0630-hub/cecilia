@@ -12,7 +12,8 @@ import {
   Search,
   ChevronRight,
   ClipboardList,
-  ShieldCheck
+  ShieldCheck,
+  Truck
 } from 'lucide-react';
 import { ViewType } from '../types';
 
@@ -29,6 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
     { id: 'DASHBOARD', label: '控制台', icon: LayoutDashboard },
     { id: 'PURCHASE_ORDERS', label: '采购订单管理', icon: ClipboardList },
     { id: 'INSPECTION_MANAGEMENT', label: '采购验货管理', icon: ShieldCheck },
+    { id: 'RECEIVING_MANAGEMENT', label: '采购收货管理', icon: Truck },
     { id: 'SUPPLIERS', label: '供应商管理', icon: Users },
     { id: 'INVENTORY', label: '库存查询', icon: Package },
     { id: 'AI_INSIGHTS', label: 'AI 决策助手', icon: Sparkles },
