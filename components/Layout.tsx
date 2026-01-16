@@ -11,7 +11,8 @@ import {
   Bell,
   Search,
   ChevronRight,
-  ClipboardList
+  ClipboardList,
+  ShieldCheck
 } from 'lucide-react';
 import { ViewType } from '../types';
 
@@ -27,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
   const menuItems = [
     { id: 'DASHBOARD', label: '控制台', icon: LayoutDashboard },
     { id: 'PURCHASE_ORDERS', label: '采购订单管理', icon: ClipboardList },
+    { id: 'INSPECTION_MANAGEMENT', label: '采购验货管理', icon: ShieldCheck },
     { id: 'SUPPLIERS', label: '供应商管理', icon: Users },
     { id: 'INVENTORY', label: '库存查询', icon: Package },
     { id: 'AI_INSIGHTS', label: 'AI 决策助手', icon: Sparkles },
@@ -53,11 +55,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
                 onClick={() => setActiveView(item.id as ViewType)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive 
-                    ? 'bg-indigo-50 text-indigo-700 font-semibold' 
+                    ? 'bg-[#82AD00] text-white font-semibold shadow-md shadow-[#82AD00]/20' 
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 {item.label}
               </button>
             );
@@ -146,7 +148,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
                       setIsMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                      isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'
+                      isActive ? 'bg-[#82AD00] text-white' : 'text-slate-500'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
