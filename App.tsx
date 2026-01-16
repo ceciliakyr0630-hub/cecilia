@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import Suppliers from './components/Suppliers';
 import AIInsights from './components/AIInsights';
+import CreatePurchaseOrderModal from './components/CreatePurchaseOrderModal';
 import { ViewType } from './types';
 
 // Simple Inventory Placeholder
@@ -23,11 +24,14 @@ const InventoryView = () => (
 );
 
 // Requisitions Placeholder
-const RequisitionsView = () => (
+const RequisitionsView = ({ onOpenCreate }: { onOpenCreate: () => void }) => (
   <div className="space-y-6">
     <div className="flex justify-between items-center">
       <h2 className="text-2xl font-bold text-slate-900">采购申请单</h2>
-      <button className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition-all">
+      <button 
+        onClick={onOpenCreate}
+        className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95"
+      >
         新建申请
       </button>
     </div>
@@ -70,13 +74,14 @@ const RequisitionsView = () => (
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('DASHBOARD');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const renderContent = () => {
     switch (activeView) {
       case 'DASHBOARD':
         return <Dashboard />;
       case 'REQUISITIONS':
-        return <RequisitionsView />;
+        return <RequisitionsView onOpenCreate={() => setIsModalOpen(true)} />;
       case 'SUPPLIERS':
         return <Suppliers />;
       case 'INVENTORY':
@@ -91,6 +96,7 @@ const App: React.FC = () => {
   return (
     <Layout activeView={activeView} setActiveView={setActiveView}>
       {renderContent()}
+      <CreatePurchaseOrderModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </Layout>
   );
 };

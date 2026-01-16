@@ -1,7 +1,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always initialize with an object containing apiKey from process.env.API_KEY directly.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getProcurementInsights = async (context: string) => {
   try {
@@ -33,6 +34,7 @@ export const getProcurementInsights = async (context: string) => {
       }
     });
 
+    // Use .text property directly to access the response string.
     return JSON.parse(response.text || '{"insights": []}');
   } catch (error) {
     console.error("Gemini Insight Error:", error);
@@ -48,6 +50,7 @@ export const chatWithAssistant = async (history: { role: string, parts: { text: 
     }
   });
 
+  // chat.sendMessage returns a GenerateContentResponse object.
   const response = await chat.sendMessage({ message });
   return response.text;
 };
